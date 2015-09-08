@@ -1,11 +1,15 @@
 package com.sushmanayak.android.popularmovies;
 
 import android.content.Intent;
+import android.os.Build;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.transition.TransitionInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.sushmanayak.android.popularmovies.Adapter.MovieImageAdapter;
 
@@ -27,11 +31,14 @@ public class MoviesActivity extends AppCompatActivity implements MovieImageAdapt
         }
     }
 
-    public void onItemClicked(int position)
+    @SuppressWarnings("NewApi")
+    public void onItemClicked(View v, int position)
     {
+        v.setTransitionName("posterTransition");
+        ActivityOptionsCompat optionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, v.getTransitionName());
         Intent intent = new Intent(this, MovieInfoActivity.class);
         intent.putExtra(Intent.EXTRA_TEXT, position);
-        startActivity(intent);
+        startActivity(intent, optionsCompat.toBundle());
     }
 
 

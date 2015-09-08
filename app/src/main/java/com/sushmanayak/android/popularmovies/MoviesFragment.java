@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -86,8 +87,8 @@ public class MoviesFragment extends Fragment{
         activity.setSupportActionBar(mToolbar);
 
         mMoviesGridView = (RecyclerView) view.findViewById(R.id.movieGridView);
-        final GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(),2);
-        mMoviesGridView.setLayoutManager(gridLayoutManager);
+        mMoviesGridView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        //mMoviesGridView.addOnItemTouchListener(new Re);
         //mMoviesGridView.setOnItemClickListener(movieItemClicked);
 
         // Set the adapter

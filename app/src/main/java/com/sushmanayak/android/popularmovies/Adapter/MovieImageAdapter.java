@@ -25,7 +25,7 @@ public class MovieImageAdapter extends RecyclerView.Adapter<MovieImageAdapter.Im
     private ArrayList<Movie> mMovieList;
 
     public interface CallBacks {
-        public void onItemClicked(int position);
+        public void onItemClicked(View view, int position);
     }
 
     public MovieImageAdapter(Context context) {
@@ -66,7 +66,7 @@ public class MovieImageAdapter extends RecyclerView.Adapter<MovieImageAdapter.Im
             movieHolder.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    ((CallBacks)mContext).onItemClicked(getAdapterPosition());
+                    ((CallBacks) mContext).onItemClicked(v, getAdapterPosition());
                 }
             });
         }
