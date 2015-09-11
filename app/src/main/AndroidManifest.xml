@@ -23,6 +23,10 @@
             android:label="@string/title_activity_movie_info"
             android:parentActivityName=".MoviesActivity" >
         </activity>
-    </application>
 
+        <provider
+            android:authorities="com.sushmanayak.android.popularmovies"
+            android:name=".Data.MovieProvider"/>
+
+    </application>
 </manifest>

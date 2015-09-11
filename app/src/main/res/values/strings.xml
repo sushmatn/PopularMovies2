@@ -7,10 +7,18 @@
 
     <string name="releasedate_text">Release Date</string>
     <string name="userrating_text">User Rating</string>
+    <string name="homepage">Movie Homepage</string>
+    <string name="duration">Movie Duration</string>
     <string name="overview_text">Plot Synopsis</string>
+    <string name="reviews">User Reviews</string>
+    <string name="trailers">Trailers</string>
 
     <string name="title_activity_movie_info">Movie Details</string>
     <string name="infoNA">Information not available</string>
+    <string name="none">None</string>
 
-    <string name="api_key">API KEY</string>
+    <string name="api_key">a0afe00f0a7d96320a7150d4453fc25f</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

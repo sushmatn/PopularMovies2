@@ -12,40 +12,43 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.sushmanayak.android.popularmovies.Adapter.MovieImageAdapter;
+import com.sushmanayak.android.popularmovies.Data.MovieContract;
 
 public class MoviesActivity extends AppCompatActivity implements MovieImageAdapter.CallBacks {
+
+    private boolean mTwoPane = false;
+    final String DETAIL_FRG_TAG = "DFTAG";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movies);
-
-        // Create and add the MoviesFragment
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        if(fragmentManager.findFragmentById(R.id.fragment_container) == null)
-        {
-            MoviesFragment fragment = new MoviesFragment();
-            fragmentManager.beginTransaction()
-                    .add(R.id.fragment_container, fragment)
-                    .commit();
-        }
+        if (findViewById(R.id.movieDetailsContainer) != null) {
+            mTwoPane = true;
+        } else
+            mTwoPane = false;
     }
 
     @SuppressWarnings("NewApi")
-    public void onItemClicked(View v, int position)
-    {
-        v.setTransitionName("posterTransition");
-        ActivityOptionsCompat optionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, v.getTransitionName());
-        Intent intent = new Intent(this, MovieInfoActivity.class);
-        intent.putExtra(Intent.EXTRA_TEXT, position);
-        startActivity(intent, optionsCompat.toBundle());
+    public void onItemClicked(View v, int position, String movieId) {
+        if (mTwoPane) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.movieDetailsContainer, MovieDetailsFragment.newInstance(movieId), DETAIL_FRG_TAG)
+                    .commit();
+        } else {
+            ActivityOptionsCompat optionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, "posterTransition");
+            Intent intent = new Intent(this, MovieInfoActivity.class);
+            intent.putExtra(Intent.EXTRA_TEXT, movieId);
+            startActivity(intent, optionsCompat.toBundle());
+        }
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_movies, menu);
+
         return true;
     }
 

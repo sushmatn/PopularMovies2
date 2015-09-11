@@ -1,87 +1,38 @@
 package com.sushmanayak.android.popularmovies;
 
 import android.content.Intent;
-import android.os.Build;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v4.app.FragmentManager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.transition.TransitionInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ImageView;
-import android.widget.RatingBar;
-import android.widget.TextView;
-
-import com.squareup.picasso.Picasso;
-import com.sushmanayak.android.popularmovies.Data.Movie;
-import com.sushmanayak.android.popularmovies.Data.MovieList;
-
-import java.util.ArrayList;
+import android.widget.FrameLayout;
+import android.widget.Toolbar;
 
 public class MovieInfoActivity extends AppCompatActivity {
-
-    public final static String CURR_POS = "com.sushmanayak.popularmovies.CurrentMoviePosition";
-
-    ArrayList<Movie> mMovieList;
-    CollapsingToolbarLayout mCollapsingToolbarLayout;
-    Toolbar mToolbar;
-    int currentPosition = 0;
-    TextView titleTextView;
-    TextView overviewTextView;
-    TextView releaseDateTextView;
-    TextView userRating;
-    RatingBar userRatingBar;
-    ImageView moviePosterView;
-    ImageView thumbnailView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_info);
 
-        mMovieList = MovieList.getInstance().getMovieArrayList();
-        moviePosterView = (ImageView)findViewById(R.id.moviePosterView);
-        mCollapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar_layout);
-        titleTextView = (TextView)findViewById(R.id.title_textview);
-        overviewTextView = (TextView)findViewById(R.id.overview_textview);
-        releaseDateTextView = (TextView)findViewById(R.id.releasedate_textview);
-        userRatingBar = (RatingBar)findViewById(R.id.userRatingBar);
-        userRating = (TextView)findViewById(R.id.userRating);
-        thumbnailView = (ImageView)findViewById(R.id.thumbnailView);
+        ActionBar toolbar = getSupportActionBar();
+        toolbar.setDisplayShowTitleEnabled(true);
+        toolbar.setDisplayHomeAsUpEnabled(true);
+        toolbar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#330000ff")));
 
-        mToolbar = (Toolbar) findViewById(R.id.app_bar);
-        mToolbar.setBackgroundColor(0);
-        setSupportActionBar(mToolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getIntent().hasExtra(Intent.EXTRA_TEXT)) {
 
-        if(getIntent().hasExtra(Intent.EXTRA_TEXT))
-            currentPosition = getIntent().getIntExtra(Intent.EXTRA_TEXT,0);
-
-        if(savedInstanceState != null)
-            currentPosition = savedInstanceState.getInt(CURR_POS);
-
-        updateView(currentPosition);
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(CURR_POS,currentPosition);
-    }
-
-    private void updateView(int itemIndex)
-    {
-        Movie movie = MovieList.getInstance().getMovieArrayList().get(itemIndex);
-        titleTextView.setText(movie.getTitle());
-        overviewTextView.setText(movie.getOverview());
-        releaseDateTextView.setText(movie.getReleaseDate());
-        userRatingBar.setRating(Float.valueOf(movie.getUserRating()));
-        userRating.setText(movie.getUserRating());
-        Picasso.with(this).load(movie.getPosterPath()).into(thumbnailView);
-        Picasso.with(this).load(movie.getThumbNailPath()).into(moviePosterView);
-        mCollapsingToolbarLayout.setTitle(movie.getTitle());
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            if (fragmentManager.findFragmentById(R.id.movieDetailsContainer) == null) {
+                fragmentManager.beginTransaction()
+                        .add(R.id.movieDetailsContainer, MovieDetailsFragment.newInstance(getIntent().getStringExtra(Intent.EXTRA_TEXT)))
+                                .commit();
+            }
+        }
     }
 
     @Override
@@ -105,7 +56,6 @@ public class MovieInfoActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Nullable
     @Override
     public Intent getParentActivityIntent() {
         return super.getParentActivityIntent().addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
