@@ -1,8 +1,11 @@
 package com.sushmanayak.android.popularmovies;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 
 import com.sushmanayak.android.popularmovies.Data.FetchMoviesTask;
@@ -46,5 +49,16 @@ public class Utility {
             e.printStackTrace();
         }
         return movieValues;
+    }
+
+    public static boolean IsDeviceOnline(Context context)
+    {
+        ConnectivityManager cm =
+                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+        return isConnected;
     }
 }

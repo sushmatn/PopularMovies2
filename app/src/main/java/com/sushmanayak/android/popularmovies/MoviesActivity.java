@@ -37,10 +37,7 @@ public class MoviesActivity extends AppCompatActivity implements MovieImageAdapt
         for( Map.Entry entry : prefs.getAll().entrySet() )
             FavoriteMovies.put(entry.getKey().toString(), entry.getValue().toString());
 
-        if (findViewById(R.id.movieDetailsContainer) != null) {
-            mTwoPane = true;
-        } else
-            mTwoPane = false;
+        mTwoPane = findViewById(R.id.movieDetailsContainer) != null ;
     }
 
     @Override
