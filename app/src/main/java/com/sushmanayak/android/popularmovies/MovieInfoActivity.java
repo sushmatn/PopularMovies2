@@ -9,8 +9,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.FrameLayout;
-import android.widget.Toolbar;
 
 public class MovieInfoActivity extends AppCompatActivity {
 
@@ -24,8 +22,8 @@ public class MovieInfoActivity extends AppCompatActivity {
         toolbar.setDisplayHomeAsUpEnabled(true);
         toolbar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#330000ff")));
 
-        if (getIntent().hasExtra(Intent.EXTRA_TEXT)) {
-
+        if (getIntent().hasExtra(Intent.EXTRA_TEXT))
+        {
             FragmentManager fragmentManager = getSupportFragmentManager();
             if (fragmentManager.findFragmentById(R.id.movieDetailsContainer) == null) {
                 fragmentManager.beginTransaction()

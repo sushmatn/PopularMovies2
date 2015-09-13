@@ -17,7 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.sushmanayak.android.popularmovies.Adapter.MovieImageAdapter;
 import com.sushmanayak.android.popularmovies.Data.FetchMoviesTask;
@@ -30,10 +30,9 @@ public class MoviesFragment extends Fragment implements LoaderManager.LoaderCall
 
     GridView mMoviesGridView;
     MovieImageAdapter mMoviesAdapter;
-    static SearchMethod mCurrentSortMethod = SearchMethod.POPULARITY;
-    Toolbar mToolbar;
+    static MoviesActivity.SearchMethod mCurrentSortMethod = MoviesActivity.SearchMethod.POPULARITY;
+    static boolean mDataFetched = false;
 
-    static final String MOVIE_LIST = "com.sushmanayak.PopularMovies.CurrentMoviePage";
     private static final int MOVIE_LOADER = 0;
 
     private static final String[] MOVIE_COLUMNS = {
@@ -46,36 +45,44 @@ public class MoviesFragment extends Fragment implements LoaderManager.LoaderCall
     static final int COL_MOVIE_ID = 1;
     static final int COL_MOVIE_POSTERPATH = 2;
 
+    public MoviesFragment() {
+        // Required empty public constructor
+    }
+
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
         Uri movieUri = MovieContract.MovieEntry.buildMovieUri();
         String sortOrder = MovieContract.MovieEntry._ID + " ASC";
-        return new CursorLoader(getActivity(),
-                movieUri,
-                MOVIE_COLUMNS,
-                null,
-                null,
-                sortOrder);
+        if (mCurrentSortMethod == MoviesActivity.SearchMethod.FAVORITES)
+            return new CursorLoader(getActivity(),
+                    movieUri,
+                    MOVIE_COLUMNS,
+                    MovieContract.MovieEntry.COLUMN_FAVORITE + " = ?",
+                    new String[]{"1"},
+                    sortOrder);
+        else
+            return new CursorLoader(getActivity(),
+                    movieUri,
+                    MOVIE_COLUMNS,
+                    MovieContract.MovieEntry.COLUMN_SORTBY + " = ?",
+                    new String[]{Integer.toString(mCurrentSortMethod.ordinal())},
+                    sortOrder);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+        if (data.moveToFirst() == false && !mDataFetched) {
+            mDataFetched = true;
+            updateMovieList();
+        }
         mMoviesAdapter.swapCursor(data);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mMoviesAdapter.swapCursor(null);
-    }
-
-    enum SearchMethod {
-        POPULARITY,
-        USER_RATING
-    }
-
-    public MoviesFragment() {
-        // Required empty public constructor
     }
 
     @Override
@@ -90,28 +97,13 @@ public class MoviesFragment extends Fragment implements LoaderManager.LoaderCall
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_movies, container, false);
 
-        //mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
-        //AppCompatActivity activity = (AppCompatActivity) getActivity();
-        //activity.setSupportActionBar(mToolbar);
-
         mMoviesGridView = (GridView) view.findViewById(R.id.movieGridView);
-
         mMoviesGridView.setOnItemClickListener(movieItemClicked);
 
         // Set the adapter
         mMoviesAdapter = new MovieImageAdapter(getActivity(), null, 0);
         mMoviesGridView.setAdapter(mMoviesAdapter);
 
-        // Create and set the EmptyView
-        ImageView imgView = new ImageView(getActivity());
-        imgView.setImageResource(R.drawable.pagenotfound);
-        ((ViewGroup) mMoviesGridView.getParent()).addView(imgView);
-        mMoviesGridView.setEmptyView(imgView);
-
-        // Fetch the movie list
-        if (savedInstanceState == null) {
-            //updateMovieList();
-        }
         return view;
     }
 
@@ -119,14 +111,13 @@ public class MoviesFragment extends Fragment implements LoaderManager.LoaderCall
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
             Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
-            if(cursor != null) {
-                ((MovieImageAdapter.CallBacks) getActivity()).onItemClicked(view, position,cursor.getString(COL_MOVIE_ID));
+            if (cursor != null) {
+                ((MovieImageAdapter.CallBacks) getActivity()).onItemClicked(view, position, cursor.getString(COL_MOVIE_ID));
             }
         }
     };
 
-    void updateMovieList()
-    {
+    void updateMovieList() {
         FetchMoviesTask task = new FetchMoviesTask(getActivity());
         task.execute(mCurrentSortMethod.ordinal());
     }
@@ -138,22 +129,26 @@ public class MoviesFragment extends Fragment implements LoaderManager.LoaderCall
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+        MoviesActivity.SearchMethod newSearch = mCurrentSortMethod;
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_sortbypopularity)
-            mCurrentSortMethod = SearchMethod.POPULARITY;
+            newSearch = MoviesActivity.SearchMethod.POPULARITY;
         else if (id == R.id.action_sortbyratings)
-            mCurrentSortMethod = SearchMethod.USER_RATING;
+            newSearch = MoviesActivity.SearchMethod.USER_RATING;
+        else if (id == R.id.action_sortbyfavorites)
+            newSearch = MoviesActivity.SearchMethod.FAVORITES;
 
-        updateMovieList();
-        getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
+        if (newSearch != mCurrentSortMethod) {
+            mCurrentSortMethod = newSearch;
+            Toast toast = Toast.makeText(getContext(), getString(R.string.loading), Toast.LENGTH_SHORT);
+            toast.getView().setBackgroundColor(getResources().getColor(R.color.colorAccent));
+            toast.show();
+
+            updateMovieList();
+            getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
+        }
         return super.onOptionsItemSelected(item);
     }
 }

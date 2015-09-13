@@ -3,12 +3,16 @@ package com.sushmanayak.android.popularmovies.Data;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.sushmanayak.android.popularmovies.MoviesActivity;
 import com.sushmanayak.android.popularmovies.R;
+import com.sushmanayak.android.popularmovies.Utility;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,13 +48,6 @@ public class FetchMoviesTask extends AsyncTask<Integer, Void, Boolean> {
 
     static final String MOVIEDB_TITLE = "original_title";
     static final String MOVIEDB_ID = "id";
-    static final String MOVIEDB_OVERVIEW = "overview";
-    static final String MOVIEDB_RELEASEDATE = "release_date";
-    static final String MOVIEDB_POSTERPATH = "poster_path";
-    static final String MOVIEDB_THUMBNAILPATH = "backdrop_path";
-    static final String MOVIEDB_USERRATING = "vote_average";
-    static final String MOVIEDB_HOMEPAGE = "homepage";
-    static final String MOVIEDB_RUNTIME = "runtime";
     static final String MOVIEDB_TRAILERS = "trailers";
     static final String MOVIEDB_YOUTUBE = "youtube";
     static final String MOVIEDB_VIDEOSOURCE = "source";
@@ -58,10 +55,6 @@ public class FetchMoviesTask extends AsyncTask<Integer, Void, Boolean> {
     static final String MOVIEDB_RESULTS = "results";
     static final String MOVIEDB_REVIEWAUTHOR = "author";
     static final String MOVIEDB_REVIEW = "content";
-    static final String MOVIEDB_CREDITS = "credits";
-    static final String MOVIEDB_CAST = "cast";
-    static final String MOVIEDB_ACTOR = "name";
-    static final String MOVIEDB_PROFILE_PIC = "profile_path";
     static final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p/w300/";
 
 
@@ -72,16 +65,18 @@ public class FetchMoviesTask extends AsyncTask<Integer, Void, Boolean> {
     @Override
     protected void onPostExecute(Boolean bRet) {
         super.onPostExecute(bRet);
-        //mMoviesAdapter.setMovieList(MovieList.getInstance().getMovieArrayList());
-        //mMoviesAdapter.notifyDataSetChanged();
+        if (bRet == false)
+            Toast.makeText(mContext, mContext.getResources().getString(R.string.connectionError), Toast.LENGTH_SHORT).show();
     }
 
     @Override
     protected Boolean doInBackground(Integer... params) {
 
+        ArrayList<String> movieIDs;
+        String moviesJsonStr = null;
 
         String sortBy = SORTBY_POPULARITY;
-        if (params[0] == 1)
+        if (params[0] == MoviesActivity.SearchMethod.USER_RATING.ordinal())
             sortBy = SORTBY_RATING;
 
         String uriString = Uri.parse(THEMOVIEDB_BASE_URL)
@@ -90,12 +85,20 @@ public class FetchMoviesTask extends AsyncTask<Integer, Void, Boolean> {
                 .appendQueryParameter(API_KEY_PARAM, mContext.getString(R.string.api_key))
                 .build().toString();
 
-        String moviesJsonStr = GetJsonDataFromUrl(uriString);
-
         try {
 
-            ArrayList<String> movieIDs = GetMovieListFromJSon(moviesJsonStr);
-            Vector<ContentValues> cVVector = new Vector<ContentValues>(movieIDs.size());
+            // Get the favorites list
+            if (params[0] == MoviesActivity.SearchMethod.FAVORITES.ordinal())
+                movieIDs = new ArrayList<String>(MoviesActivity.FavoriteMovies.values());
+            else {
+                moviesJsonStr = GetJsonDataFromUrl(uriString);
+
+                if (moviesJsonStr == null)
+                    return false;
+
+                movieIDs = GetMovieListFromJSon(moviesJsonStr);
+            }
+            Vector<ContentValues> cVVector = new Vector<>(movieIDs.size());
             Vector<ContentValues> cVReviewVector = new Vector<>();
             Vector<ContentValues> cVTrailerVector = new Vector<>();
 
@@ -106,23 +109,16 @@ public class FetchMoviesTask extends AsyncTask<Integer, Void, Boolean> {
                         .appendQueryParameter(API_KEY_PARAM, mContext.getString(R.string.api_key))
                         .appendQueryParameter(APPEND_PARAM, APPEND_PARAM_VALUES)
                         .build().toString();
+
                 moviesJsonStr = GetJsonDataFromUrl(uriString);
+                if (moviesJsonStr == null)
+                    return false;
+
                 JSONObject movieObject = new JSONObject(moviesJsonStr);
-
-                ContentValues movieValues = new ContentValues();
-
-                movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIEID, movieObject.getString(MOVIEDB_ID));
-                movieValues.put(MovieContract.MovieEntry.COLUMN_TITLE, movieObject.getString(MOVIEDB_TITLE));
-                movieValues.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, movieObject.getString(MOVIEDB_OVERVIEW));
-                movieValues.put(MovieContract.MovieEntry.COLUMN_POSTER_PATH, BASE_IMAGE_URL + movieObject.getString(MOVIEDB_POSTERPATH));
-                movieValues.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, movieObject.getString(MOVIEDB_RELEASEDATE));
-                movieValues.put(MovieContract.MovieEntry.COLUMN_THUMBNAIL_PATH, BASE_IMAGE_URL + movieObject.getString(MOVIEDB_THUMBNAILPATH));
-                movieValues.put(MovieContract.MovieEntry.COLUMN_RATING, movieObject.getString(MOVIEDB_USERRATING));
-                movieValues.put(MovieContract.MovieEntry.COLUMN_DURATION, movieObject.getString(MOVIEDB_RUNTIME));
-                movieValues.put(MovieContract.MovieEntry.COLUMN_SORT_TYPE, params[0]);
-
+                ContentValues movieValues = Utility.GetCVObject(movieObject, params[0]);
                 cVVector.add(movieValues);
 
+                // Get the list of trailers
                 JSONArray trailerList = movieObject.getJSONObject(MOVIEDB_TRAILERS).getJSONArray(MOVIEDB_YOUTUBE);
                 for (int i = 0; i < trailerList.length(); i++) {
                     JSONObject trailer = (JSONObject) trailerList.get(i);
@@ -134,6 +130,7 @@ public class FetchMoviesTask extends AsyncTask<Integer, Void, Boolean> {
                     cVTrailerVector.add(trailerValues);
                 }
 
+                // Get the list of reviews
                 JSONArray reviewList = movieObject.getJSONObject(MOVIEDB_REVIEWS).getJSONArray(MOVIEDB_RESULTS);
                 for (int i = 0; i < reviewList.length(); i++) {
                     JSONObject review = (JSONObject) reviewList.get(i);
@@ -146,10 +143,9 @@ public class FetchMoviesTask extends AsyncTask<Integer, Void, Boolean> {
                     cVReviewVector.add(reviewValues);
                 }
             }
-            // Delete the entries from the database whenever a new fetchtask is created
-            mContext.getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
-            mContext.getContentResolver().delete(MovieContract.ReviewEntry.CONTENT_URI, null, null);
-            mContext.getContentResolver().delete(MovieContract.TrailerEntry.CONTENT_URI, null, null);
+            // Delete the existing movies from the database whenever a new fetch request is made
+            clearDatabaseEntries();
+
             int inserted = 0;
             // add to database
             if (cVVector.size() > 0) {
@@ -159,6 +155,8 @@ public class FetchMoviesTask extends AsyncTask<Integer, Void, Boolean> {
 
                 Log.d(LOG_TAG, inserted + " Movies Inserted");
             }
+
+            // Add the reviews
             if (cVReviewVector.size() > 0) {
                 ContentValues[] cvArray = new ContentValues[cVReviewVector.size()];
                 cVReviewVector.toArray(cvArray);
@@ -166,6 +164,8 @@ public class FetchMoviesTask extends AsyncTask<Integer, Void, Boolean> {
 
                 Log.d(LOG_TAG, inserted + " Reviews Inserted");
             }
+
+            // Insert the trailers
             if (cVTrailerVector.size() > 0) {
                 ContentValues[] cvArray = new ContentValues[cVTrailerVector.size()];
                 cVTrailerVector.toArray(cvArray);
@@ -180,7 +180,15 @@ public class FetchMoviesTask extends AsyncTask<Integer, Void, Boolean> {
         return true;
     }
 
+    private void clearDatabaseEntries() {
+        // Delete all the movies except the favorites
+        mContext.getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI, MovieContract.MovieEntry.COLUMN_FAVORITE + " = ?", new String[]{"0"});
+        mContext.getContentResolver().delete(MovieContract.ReviewEntry.CONTENT_URI, null, null);
+        mContext.getContentResolver().delete(MovieContract.TrailerEntry.CONTENT_URI, null, null);
+    }
+
     private ArrayList<String> GetMovieListFromJSon(String moviesJsonStr) throws JSONException {
+
         final String MOVIEDB_RESULTS = "results";
         final String MOVIEDB_ID = "id";
 
@@ -197,9 +205,11 @@ public class FetchMoviesTask extends AsyncTask<Integer, Void, Boolean> {
     }
 
     private String GetJsonDataFromUrl(String uriString) {
+
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
         String moviesJsonStr = null;
+
         try {
             URL url = new URL(uriString);
             urlConnection = (HttpURLConnection) url.openConnection();
@@ -225,6 +235,7 @@ public class FetchMoviesTask extends AsyncTask<Integer, Void, Boolean> {
                 return moviesJsonStr;
             }
             moviesJsonStr = buffer.toString();
+
         } catch (Exception e) {
             Log.e(LOG_TAG, e.getMessage());
         } finally {

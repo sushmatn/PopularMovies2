@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteDatabaseLockedException;
 import android.net.Uri;
 
 /**
@@ -16,11 +17,11 @@ public class MovieProvider extends ContentProvider {
     private MovieDBHelper mOpenHelper;
 
     static final int MOVIES = 100;
-    static final int MOVIE_DETAILS = 101;
     static final int REVIEWS = 200;
     static final int MOVIE_REVIEWS = 201;
     static final int TRAILERS = 300;
     static final int MOVIE_TRAILERS = 301;
+    static final int MOVIE_DETAILS = 101;
 
     @Override
     public boolean onCreate() {
@@ -56,15 +57,15 @@ public class MovieProvider extends ContentProvider {
                 break;
 
             case MOVIES:
-                retCursor = database.query(MovieContract.MovieEntry.TABLE_NAME, projection, null, null, null, null, sortOrder);
+                retCursor = database.query(MovieContract.MovieEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
                 break;
 
             case REVIEWS:
-                retCursor = database.query(MovieContract.ReviewEntry.TABLE_NAME, projection, null, null, null, null, sortOrder);
+                retCursor = database.query(MovieContract.ReviewEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
                 break;
 
             case TRAILERS:
-                retCursor = database.query(MovieContract.TrailerEntry.TABLE_NAME, null, null, null, null, null, sortOrder);
+                retCursor = database.query(MovieContract.TrailerEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
                 break;
             default:
                 throw new UnsupportedOperationException("Undefined uri " + uri);
@@ -86,11 +87,11 @@ public class MovieProvider extends ContentProvider {
             case REVIEWS:
                 return MovieContract.ReviewEntry.CONTENT_TYPE;
             case MOVIE_REVIEWS:
-                return MovieContract.ReviewEntry.CONTENT_ITEM_TYPE;
+                return MovieContract.ReviewEntry.CONTENT_TYPE;
             case TRAILERS:
                 return MovieContract.TrailerEntry.CONTENT_TYPE;
             case MOVIE_TRAILERS:
-                return MovieContract.TrailerEntry.CONTENT_ITEM_TYPE;
+                return MovieContract.TrailerEntry.CONTENT_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown Uri " + uri);
         }
@@ -177,6 +178,13 @@ public class MovieProvider extends ContentProvider {
                 rowsUpdated = db.update(MovieContract.MovieEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
+
+            case MOVIE_DETAILS:
+                String movieId = uri.getPathSegments().get(1);
+                rowsUpdated = db.update(MovieContract.MovieEntry.TABLE_NAME, values, MovieContract.MovieEntry.COLUMN_MOVIEID + "= ?",
+                        new String[]{movieId});
+                break;
+
             case REVIEWS:
                 rowsUpdated = db.update(MovieContract.ReviewEntry.TABLE_NAME, values, selection,
                         selectionArgs);

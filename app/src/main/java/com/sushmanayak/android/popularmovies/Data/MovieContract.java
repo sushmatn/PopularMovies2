@@ -38,7 +38,8 @@ public class MovieContract {
         public static final String COLUMN_THUMBNAIL_PATH = "thumbnail_path";
         public static final String COLUMN_RATING = "rating";
         public static final String COLUMN_DURATION = "duration";
-        public static final String COLUMN_SORT_TYPE = "sorttype";
+        public static final String COLUMN_SORTBY = "sort";
+        public static final String COLUMN_FAVORITE = "fav";
 
         public static Uri buildMovieUri() {
             return CONTENT_URI.buildUpon().build();
