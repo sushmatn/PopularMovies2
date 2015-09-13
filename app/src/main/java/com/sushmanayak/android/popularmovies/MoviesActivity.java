@@ -44,8 +44,8 @@ public class MoviesActivity extends AppCompatActivity implements MovieImageAdapt
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
+        super.onStop();
 
         // Save the favorite movie Ids in SharedPreferences
         SharedPreferences.Editor editor = getSharedPreferences(FAV_MOVIES, 0).edit();
