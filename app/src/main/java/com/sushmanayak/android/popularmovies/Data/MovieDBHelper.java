@@ -32,7 +32,7 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 MovieContract.MovieEntry.COLUMN_SORTBY + " INTEGER NOT NULL, " +
                 MovieContract.MovieEntry.COLUMN_FAVORITE + " INTEGER DEFAULT 0, " +
 
-                " UNIQUE (" + MovieContract.MovieEntry.COLUMN_MOVIEID + ", " + MovieContract.MovieEntry.COLUMN_SORTBY + " ) ON CONFLICT REPLACE);";
+                " UNIQUE (" + MovieContract.MovieEntry.COLUMN_MOVIEID + ", " + MovieContract.MovieEntry.COLUMN_SORTBY + " ) ON CONFLICT IGNORE);";
 
         final String SQL_CREATE_REVIEW_TABLE = "CREATE TABLE " + MovieContract.ReviewEntry.TABLE_NAME + "( " +
                 MovieContract.ReviewEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT ," +
@@ -43,7 +43,7 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 MovieContract.MovieEntry.TABLE_NAME + "(" + MovieContract.MovieEntry.COLUMN_MOVIEID + ")" +
 				
                 " UNIQUE (" + MovieContract.ReviewEntry.COLUMN_MOVIEID + ", " +
-                MovieContract.ReviewEntry.COLUMN_AUTHOR + ") ON CONFLICT REPLACE)";
+                MovieContract.ReviewEntry.COLUMN_AUTHOR + ") ON CONFLICT IGNORE)";
 
         final String SQL_CREATE_TRAILER_TABLE = "CREATE TABLE " + MovieContract.TrailerEntry.TABLE_NAME + "( " +
                 MovieContract.TrailerEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT ," +
@@ -54,7 +54,7 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 MovieContract.MovieEntry.TABLE_NAME + "(" + MovieContract.MovieEntry.COLUMN_MOVIEID + ")" +
 
                 " UNIQUE (" + MovieContract.TrailerEntry.COLUMN_MOVIEID + ", " +
-                MovieContract.TrailerEntry.COLUMN_TRAILER + ") ON CONFLICT REPLACE)";
+                MovieContract.TrailerEntry.COLUMN_TRAILER + ") ON CONFLICT IGNORE)";
 
         db.execSQL(SQL_CREATE_MOVIE_TABLE);
         db.execSQL(SQL_CREATE_REVIEW_TABLE);
