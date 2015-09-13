@@ -1,6 +1,7 @@
 package com.sushmanayak.android.popularmovies;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -31,6 +32,7 @@ public class MoviesFragment extends Fragment implements LoaderManager.LoaderCall
     GridView mMoviesGridView;
     MovieImageAdapter mMoviesAdapter;
     static MoviesActivity.SearchMethod mCurrentSortMethod = MoviesActivity.SearchMethod.POPULARITY;
+    final String SORT_METHOD = "SortMethod";
     static boolean mDataFetched = false;
 
     private static final int MOVIE_LOADER = 0;
@@ -104,6 +106,14 @@ public class MoviesFragment extends Fragment implements LoaderManager.LoaderCall
         mMoviesAdapter = new MovieImageAdapter(getActivity(), null, 0);
         mMoviesGridView.setAdapter(mMoviesAdapter);
 
+        SharedPreferences preferences = getActivity().getSharedPreferences(SORT_METHOD, 0);
+        int SortMethod = Integer.parseInt(preferences.getString(SORT_METHOD, "0"));
+        if (SortMethod == 0)
+            mCurrentSortMethod = MoviesActivity.SearchMethod.POPULARITY;
+        else if (SortMethod == 1)
+            mCurrentSortMethod = MoviesActivity.SearchMethod.USER_RATING;
+        else
+            mCurrentSortMethod = MoviesActivity.SearchMethod.FAVORITES;
         return view;
     }
 
@@ -148,6 +158,10 @@ public class MoviesFragment extends Fragment implements LoaderManager.LoaderCall
 
             updateMovieList();
             getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
+
+            SharedPreferences.Editor editor = getActivity().getSharedPreferences(SORT_METHOD, 0).edit();
+            editor.putString(SORT_METHOD, Integer.toString(mCurrentSortMethod.ordinal()));
+            editor.commit();
         }
         return super.onOptionsItemSelected(item);
     }

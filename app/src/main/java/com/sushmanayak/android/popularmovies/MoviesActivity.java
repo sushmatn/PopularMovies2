@@ -2,7 +2,6 @@ package com.sushmanayak.android.popularmovies;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
