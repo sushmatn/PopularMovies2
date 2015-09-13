@@ -61,10 +61,11 @@ public class MoviesActivity extends AppCompatActivity implements MovieImageAdapt
                     .replace(R.id.movieDetailsContainer, MovieDetailsFragment.newInstance(movieId), DETAIL_FRG_TAG)
                     .commit();
         } else {
-            ActivityOptionsCompat optionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, getString(R.string.imageTransition));
+            //ActivityOptionsCompat optionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, getString(R.string.imageTransition));
             Intent intent = new Intent(this, MovieInfoActivity.class);
             intent.putExtra(Intent.EXTRA_TEXT, movieId);
-            startActivity(intent, optionsCompat.toBundle());
+            //startActivity(intent, optionsCompat.toBundle());
+            startActivity(intent);
         }
     }
 
