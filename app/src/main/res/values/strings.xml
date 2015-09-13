@@ -21,6 +21,7 @@
     <string name="title_activity_movie_info">Movie Details</string>
     <string name="infoNA">Information not available</string>
     <string name="none">None</string>
+    <string name="trailerNA">Trailer is not available for this movie</string>
 
     <string name="api_key">Your API Key</string>
 

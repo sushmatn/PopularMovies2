@@ -143,10 +143,7 @@ public class MovieDetailsFragment extends Fragment implements LoaderManager.Load
 
         // Get the provider and hold onto it to set/change the share intent.
         mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
-        mShareActionProvider.setShareIntent(null);
-
-        if (mTrailerLink != null)
-            mShareActionProvider.setShareIntent(createShareTrailerIntent());
+        mShareActionProvider.setShareIntent(createShareTrailerIntent());
     }
 
     @Override
@@ -158,7 +155,10 @@ public class MovieDetailsFragment extends Fragment implements LoaderManager.Load
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
         shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_TEXT, mTrailerLink);
+        if(mTrailerLink == null)
+            shareIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.trailerNA));
+        else
+            shareIntent.putExtra(Intent.EXTRA_TEXT, mTrailerLink);
         return shareIntent;
     }
 
